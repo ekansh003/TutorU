@@ -1,61 +1,193 @@
 import os
 from typing import List, Dict
+
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.embeddings import Embeddings
+from langchain_community.vectorstores import FAISS
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-import json
-from sentence_transformers import SentenceTransformer
-from langchain_community.vectorstores import FAISS
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.embeddings import Embeddings
+
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
+
+# ============================================================
+# GEMINI
+# ============================================================
+
 llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash")
 
-class SentenceTransformerEmbeddings(Embeddings):
-    def __init__(self, model_name: str):
-        self.model = SentenceTransformer(model_name)
+
+# ============================================================
+# GEMINI EMBEDDINGS
+# ============================================================
+
+class GeminiEmbeddings(Embeddings):
+    """
+    Lightweight Gemini Embedding 2 implementation.
+
+    This replaces SentenceTransformer + PyTorch so TutorU
+    can run within Render's 512 MB free-tier memory limit.
+    """
+
+    def __init__(
+        self,
+        model_name: str = "gemini-embedding-2",
+        output_dimensionality: int = 768,
+    ):
+        self.model_name = model_name
+        self.output_dimensionality = output_dimensionality
+
+        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+
+        if not api_key:
+            raise ValueError(
+                "GOOGLE_API_KEY or GEMINI_API_KEY must be set."
+            )
+
+        self.client = genai.Client(api_key=api_key)
+
+    def _embed_texts(self, texts: List[str]) -> List[List[float]]:
+        if not texts:
+            return []
+
+        contents = [
+            types.Content(
+                parts=[types.Part(text=text)]
+            )
+            for text in texts
+        ]
+
+        response = self.client.models.embed_content(
+            model=self.model_name,
+            contents=contents,
+            config=types.EmbedContentConfig(
+                output_dimensionality=self.output_dimensionality,
+            ),
+        )
+
+        return [
+            list(embedding.values)
+            for embedding in response.embeddings
+        ]
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        return self.model.encode(texts, convert_to_tensor=False).tolist()
+        """
+        Embed document chunks for FAISS.
+        """
+
+        # Keep batches modest to avoid unnecessarily large
+        # requests when a lesson contains many chunks.
+        batch_size = 20
+
+        embeddings = []
+
+        for start in range(0, len(texts), batch_size):
+            batch = texts[start:start + batch_size]
+            embeddings.extend(self._embed_texts(batch))
+
+        return embeddings
 
     def embed_query(self, text: str) -> List[float]:
-        return self.model.encode([text], convert_to_tensor=False)[0].tolist()
+        """
+        Embed a student's question for similarity search.
+        """
+
+        embeddings = self._embed_texts([text])
+
+        if not embeddings:
+            raise ValueError("Failed to generate query embedding.")
+
+        return embeddings[0]
+
+
+# ============================================================
+# PYDANTIC SCHEMAS
+# ============================================================
 
 class ChapterSchema(BaseModel):
-    chapters: List[str] = Field(description="List of 5 chapter titles")
+    chapters: List[str] = Field(
+        description="List of 5 chapter titles"
+    )
+
 
 class LessonSchema(BaseModel):
-    lessons: List[str] = Field(description="List of lesson titles")
+    lessons: List[str] = Field(
+        description="List of lesson titles"
+    )
+
 
 class DictionarySchema(BaseModel):
-    course_structure: Dict[str, LessonSchema] = Field(description="Dictionary with chapters as keys and lesson lists as values")
+    course_structure: Dict[str, LessonSchema] = Field(
+        description="Dictionary with chapters as keys and lesson lists as values"
+    )
+
 
 class ScheduleSchema(BaseModel):
-    schedule: Dict[str, List[str]] = Field(description="Dictionary with dates (YYYY-MM-DD) as keys and lists of lesson or quiz titles as values")
+    schedule: Dict[str, List[str]] = Field(
+        description="Dictionary with dates (YYYY-MM-DD) as keys and lists of lesson or quiz titles as values"
+    )
+
 
 class LessonContentSchema(BaseModel):
-    content: str = Field(description="Detailed content for the specified lesson")
+    content: str = Field(
+        description="Detailed content for the specified lesson"
+    )
+
 
 class QuizQuestion(BaseModel):
-    question: str = Field(description="A single quiz question")
-    options: List[str] = Field(description="List of 4 answer options", min_length=4, max_length=4)
-    correct_answer: str = Field(description="The correct answer")
+    question: str = Field(
+        description="A single quiz question"
+    )
+
+    options: List[str] = Field(
+        description="List of 4 answer options",
+        min_length=4,
+        max_length=4,
+    )
+
+    correct_answer: str = Field(
+        description="The correct answer"
+    )
+
 
 class QuizSchema(BaseModel):
-    questions: List[QuizQuestion] = Field(description="List of quiz questions")
+    questions: List[QuizQuestion] = Field(
+        description="List of quiz questions"
+    )
+
+
+# ============================================================
+# CHAPTER GENERATION
+# ============================================================
 
 chapter_prompt = ChatPromptTemplate.from_template(
-    "Generate a list of 5 chapter titles for a course on {course} that help in fully understanding the topic. "
+    "Generate a list of 5 chapter titles for a course on {course} "
+    "that help in fully understanding the topic. "
     "Return a JSON object with a 'chapters' key containing the list of titles."
 )
-chapter_chain = chapter_prompt | llm.with_structured_output(ChapterSchema)
 
-dictionary_parser = PydanticOutputParser(pydantic_object=DictionarySchema)
+chapter_chain = (
+    chapter_prompt
+    | llm.with_structured_output(ChapterSchema)
+)
+
+
+# ============================================================
+# LESSON GENERATION
+# ============================================================
+
+dictionary_parser = PydanticOutputParser(
+    pydantic_object=DictionarySchema
+)
+
 lesson_prompt = ChatPromptTemplate.from_template(
     """For a course on {course}, generate a list of 3 lessons for each chapter in the list below.
 
@@ -67,23 +199,60 @@ Return a JSON object that matches this format exactly:
 {format_instructions}
 """
 )
-lesson_chain = lesson_prompt.partial(format_instructions=dictionary_parser.get_format_instructions()) | llm | dictionary_parser
 
-def generate_schedule(lessons: Dict[str, LessonSchema]) -> ScheduleSchema:
+lesson_chain = (
+    lesson_prompt.partial(
+        format_instructions=dictionary_parser.get_format_instructions()
+    )
+    | llm
+    | dictionary_parser
+)
+
+
+# ============================================================
+# SCHEDULE GENERATION
+# ============================================================
+
+def generate_schedule(
+    lessons: Dict[str, LessonSchema]
+) -> ScheduleSchema:
+
     schedule = {}
+
     current_date = datetime.now().date()
     day_offset = 0
 
     for chapter, lesson_schema in lessons.items():
+
         for lesson in lesson_schema.lessons:
-            date_str = (current_date + timedelta(days=day_offset)).strftime("%Y-%m-%d")
-            schedule[date_str] = [lesson, f"Short Quiz: {lesson}"]
+
+            date_str = (
+                current_date + timedelta(days=day_offset)
+            ).strftime("%Y-%m-%d")
+
+            schedule[date_str] = [
+                lesson,
+                f"Short Quiz: {lesson}"
+            ]
+
             day_offset += 1
-        date_str = (current_date + timedelta(days=day_offset)).strftime("%Y-%m-%d")
-        schedule[date_str] = [f"Large Quiz: {chapter}"]
+
+        date_str = (
+            current_date + timedelta(days=day_offset)
+        ).strftime("%Y-%m-%d")
+
+        schedule[date_str] = [
+            f"Large Quiz: {chapter}"
+        ]
+
         day_offset += 1
 
     return ScheduleSchema(schedule=schedule)
+
+
+# ============================================================
+# LESSON CONTENT GENERATION
+# ============================================================
 
 content_prompt = ChatPromptTemplate.from_template(
     """Generate detailed content for a lesson in a course. The course is "{course}", the chapter is "{chapter}", and the lesson is "{lesson}". Provide a comprehensive explanation suitable for a beginner, including key concepts, examples, and practical applications. Format the content in markdown with clear headings (##), paragraphs, lists, and code blocks where appropriate.
@@ -92,7 +261,16 @@ IMPORTANT: Respond with ONLY the following JSON object. Do not include any addit
 
 {{"content": "<insert the full markdown-formatted lesson content here as a single escaped string>"}}"""
 )
-content_chain = content_prompt | llm.with_structured_output(LessonContentSchema)
+
+content_chain = (
+    content_prompt
+    | llm.with_structured_output(LessonContentSchema)
+)
+
+
+# ============================================================
+# QUIZ GENERATION
+# ============================================================
 
 quiz_prompt = ChatPromptTemplate.from_template(
     """Generate a {quiz_type} for a course on {course}. The context is "{chapter}".
@@ -101,18 +279,49 @@ quiz_prompt = ChatPromptTemplate.from_template(
     Provide beginner-friendly questions with clear explanations.
     Return a JSON object with a 'questions' key containing a list of questions, each with 'question', 'options', and 'correct_answer'."""
 )
-quiz_chain = quiz_prompt | llm | PydanticOutputParser(pydantic_object=QuizSchema)
+
+quiz_chain = (
+    quiz_prompt
+    | llm
+    | PydanticOutputParser(pydantic_object=QuizSchema)
+)
+
+
+# ============================================================
+# RAG VECTOR STORE
+# ============================================================
 
 def create_rag_vector_store(content: str):
+
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=50,
-        separators=["\n## ", "\n\n", "\n", ". "]
+        separators=[
+            "\n## ",
+            "\n\n",
+            "\n",
+            ". ",
+        ],
     )
+
     chunks = text_splitter.split_text(content)
-    embedder = SentenceTransformerEmbeddings('all-MiniLM-L6-v2')
-    vector_store = FAISS.from_texts(chunks, embedder)
+
+    embedder = GeminiEmbeddings(
+        model_name="gemini-embedding-2",
+        output_dimensionality=768,
+    )
+
+    vector_store = FAISS.from_texts(
+        chunks,
+        embedder,
+    )
+
     return vector_store, chunks
+
+
+# ============================================================
+# RAG PROMPT
+# ============================================================
 
 rag_prompt = ChatPromptTemplate.from_template(
     """You are a helpful tutor explaining concepts clearly and concisely.
@@ -121,7 +330,7 @@ STUDENT QUESTION: "{question}"
 
 LESSON CONTEXT:
 Course: {course_name}
-Chapter: {chapter_title} 
+Chapter: {chapter_title}
 Lesson: {lesson_title}
 
 RELEVANT CONTENT:
@@ -130,7 +339,7 @@ RELEVANT CONTENT:
 RESPONSE GUIDELINES:
 - **Length**: Match the complexity of the question
   * Simple questions (what is X?): 1-2 paragraphs
-  * Medium questions (how does X work?): 2-3 paragraphs  
+  * Medium questions (how does X work?): 2-3 paragraphs
   * Complex questions (explain X in detail): 3-4 paragraphs
 - **Format**: Use clear headings, bullet points, and emphasis
 - **Style**: Conversational but professional
@@ -141,31 +350,72 @@ IMPORTANT: Use **bold** for key terms and *italics* for emphasis. Structure your
 Your explanation:"""
 )
 
-def rag_answer(question: str, vector_store, chunks, course_name: str, chapter_title: str, lesson_title: str):
+
+# ============================================================
+# RAG ANSWER
+# ============================================================
+
+def rag_answer(
+    question: str,
+    vector_store,
+    chunks,
+    course_name: str,
+    chapter_title: str,
+    lesson_title: str,
+):
+
     try:
-        docs = vector_store.similarity_search(question, k=3)
-        
+
+        docs = vector_store.similarity_search(
+            question,
+            k=3,
+        )
+
         context_parts = []
-        for i, doc in enumerate(docs):
-            context_parts.append(f"{doc.page_content}")
-        
-        context = "\n\n".join(context_parts)
-        
+
+        for doc in docs:
+            context_parts.append(
+                doc.page_content
+            )
+
+        context = "\n\n".join(
+            context_parts
+        )
+
         response_chain = rag_prompt | llm
-        result = response_chain.invoke({
-            "course_name": course_name,
-            "chapter_title": chapter_title,
-            "lesson_title": lesson_title,
-            "context": context,
-            "question": question
-        })
-        
+
+        result = response_chain.invoke(
+            {
+                "course_name": course_name,
+                "chapter_title": chapter_title,
+                "lesson_title": lesson_title,
+                "context": context,
+                "question": question,
+            }
+        )
+
         answer = result.content
-        
-        citation = f'\n\n<small class="text-muted"><i class="fas fa-book me-1"></i>Reference: {lesson_title}</small>'
-        
-        return answer + citation, "Formatted explanation"
-        
+
+        citation = (
+            f'\n\n<small class="text-muted">'
+            f'<i class="fas fa-book me-1"></i>'
+            f'Reference: {lesson_title}'
+            f'</small>'
+        )
+
+        return (
+            answer + citation,
+            "Formatted explanation"
+        )
+
     except Exception as e:
-        print(f"RAG Error: {str(e)}")
-        return f"I'm having trouble accessing the lesson content right now. Please try rephrasing your question.", "[System issue]"
+
+        print(
+            f"RAG Error: {str(e)}"
+        )
+
+        return (
+            "I'm having trouble accessing the lesson content right now. "
+            "Please try rephrasing your question.",
+            "[System issue]"
+        )

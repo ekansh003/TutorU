@@ -7,6 +7,6 @@ langchain-core==1.5.5
 langchain-community==0.4.2
 langchain-text-splitters==1.1.2
 pydantic==2.13.4
-sentence-transformers==5.7.0
+faiss-cpu==1.15.0
 faiss-cpu==1.15.0
 gunicorn==26.0.0
