@@ -1,0 +1,694 @@
+/* =========================================================
+   TutorU — Dashboard
+   ========================================================= */
+
+/* =========================================================
+   Dashboard Layout
+   ========================================================= */
+
+.dashboard {
+  width: 100%;
+  max-width: 1180px;
+
+  margin: 0 auto;
+
+  padding: 0 28px 80px;
+}
+
+/* =========================================================
+   Header
+   ========================================================= */
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 40px;
+
+  padding: 28px 0 38px;
+
+  border-bottom: 1px solid var(--tu-line);
+}
+
+.eyebrow {
+  margin-bottom: 10px;
+
+  color: var(--tu-accent);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  letter-spacing: 0.15em;
+}
+
+.dashboard-header h1 {
+  margin: 0 0 12px;
+
+  color: var(--tu-black);
+
+  font-size: clamp(2.7rem, 4vw, 3.5rem);
+  font-weight: 650;
+
+  line-height: 1.04;
+
+  letter-spacing: -0.055em;
+}
+
+.dashboard-header p {
+  margin: 0;
+
+  color: var(--tu-muted);
+
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.dashboard-create-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+
+  flex-shrink: 0;
+
+  padding-bottom: 6px;
+
+  color: var(--tu-black);
+
+  border-bottom: 1px solid var(--tu-black);
+
+  font-size: 15px;
+  font-weight: 600;
+
+  transition:
+    color 160ms ease,
+    gap 160ms ease,
+    border-color 160ms ease;
+}
+
+.dashboard-create-link:hover {
+  color: var(--tu-accent);
+
+  border-color: var(--tu-accent);
+
+  gap: 14px;
+}
+
+/* =========================================================
+   Sections
+   ========================================================= */
+
+.dashboard-section {
+  padding-top: 46px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  margin-bottom: 20px;
+}
+
+.section-label {
+  color: var(--tu-muted);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  letter-spacing: 0.15em;
+}
+
+.section-heading h2 {
+  margin: 7px 0 0;
+
+  color: var(--tu-black);
+
+  font-size: 27px;
+  font-weight: 650;
+
+  line-height: 1.2;
+
+  letter-spacing: -0.04em;
+}
+
+.section-count {
+  color: var(--tu-muted);
+
+  font-size: 14px;
+}
+
+/* =========================================================
+   Courses
+   ========================================================= */
+
+.course-grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  gap: 14px;
+}
+
+.course-card {
+  min-height: 180px;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 22px;
+
+  color: var(--tu-black);
+
+  background: var(--tu-surface);
+
+  border: 1px solid var(--tu-line);
+  border-radius: var(--tu-radius);
+
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.course-card:hover {
+  color: var(--tu-black);
+
+  border-color: var(--tu-line-dark);
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 10px 28px rgba(17, 17, 17, 0.055);
+}
+
+.course-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.course-index {
+  color: var(--tu-muted);
+
+  font-size: 12px;
+  font-weight: 600;
+
+  letter-spacing: 0.1em;
+}
+
+.course-arrow {
+  color: var(--tu-subtle);
+
+  font-size: 18px;
+
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.course-card:hover .course-arrow {
+  color: var(--tu-accent);
+
+  transform: translate(2px, -2px);
+}
+
+.course-card-name {
+  max-width: 90%;
+
+  margin-top: auto;
+  margin-bottom: 18px;
+
+  color: var(--tu-black);
+
+  font-size: 20px;
+  font-weight: 600;
+
+  line-height: 1.3;
+
+  letter-spacing: -0.025em;
+}
+
+.course-card-footer {
+  padding-top: 12px;
+
+  color: var(--tu-muted);
+
+  border-top: 1px solid var(--tu-line);
+
+  font-size: 14px;
+}
+
+/* =========================================================
+   Empty Courses
+   ========================================================= */
+
+.empty-courses {
+  grid-column: 1 / -1;
+
+  padding: 44px;
+
+  background: var(--tu-surface);
+
+  border: 1px dashed var(--tu-line-dark);
+  border-radius: var(--tu-radius);
+}
+
+.empty-courses-title {
+  color: var(--tu-black);
+
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.empty-courses p {
+  max-width: 560px;
+
+  margin: 8px 0 18px;
+
+  color: var(--tu-muted);
+
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.text-link {
+  color: var(--tu-accent);
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.text-link:hover {
+  color: var(--tu-black);
+}
+
+/* =========================================================
+   Today's Learning
+   ========================================================= */
+
+.tasks-section {
+  padding-top: 68px;
+  padding-bottom: 50px;
+}
+
+/*
+   The queue is deliberately narrower than the dashboard
+   content so there is visible breathing room on both sides.
+*/
+
+.learning-queue {
+  width: calc(100% - 48px);
+
+  margin: 0 auto;
+
+  background: var(--tu-surface);
+
+  border: 1px solid var(--tu-line);
+  border-radius: var(--tu-radius-sm);
+
+  overflow: hidden;
+}
+
+.task-course-group {
+  border-bottom: 1px solid var(--tu-line);
+}
+
+.task-course-group:last-child {
+  border-bottom: 0;
+}
+
+.task-course-heading {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  min-height: 62px;
+
+  padding: 0 24px;
+
+  color: var(--tu-black);
+
+  font-size: 17px;
+  font-weight: 600;
+
+  border-bottom: 1px solid var(--tu-line);
+}
+
+.task-course-dot {
+  width: 7px;
+  height: 7px;
+
+  flex-shrink: 0;
+
+  background: var(--tu-accent);
+
+  border-radius: 50%;
+}
+
+.task-list {
+  border-top: 0;
+}
+
+/* =========================================================
+   Individual Learning Task
+   ========================================================= */
+
+.learning-task {
+  min-height: 94px;
+
+  display: grid;
+
+  grid-template-columns:
+    48px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 20px;
+
+  padding: 20px 24px;
+
+  border-bottom: 1px solid var(--tu-line);
+
+  transition:
+    opacity 250ms ease,
+    transform 250ms ease;
+}
+
+.learning-task:last-child {
+  border-bottom: 0;
+}
+
+.task-number {
+  width: auto;
+
+  flex-shrink: 0;
+
+  color: var(--tu-subtle);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  letter-spacing: 0.08em;
+}
+
+.task-main {
+  min-width: 0;
+}
+
+.task-type {
+  margin-bottom: 6px;
+
+  color: var(--tu-muted);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.task-title {
+  overflow: hidden;
+
+  color: var(--tu-black);
+
+  font-size: 17px;
+  font-weight: 500;
+
+  line-height: 1.45;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+}
+
+.task-start {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: var(--tu-black);
+
+  font-size: 15px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  transition:
+    color 150ms ease,
+    gap 150ms ease;
+}
+
+.task-start:hover {
+  color: var(--tu-accent);
+
+  gap: 10px;
+}
+
+.task-complete {
+  width: 38px;
+  height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  color: var(--tu-subtle);
+
+  background: transparent;
+
+  border: 1px solid var(--tu-line-dark);
+  border-radius: 50%;
+
+  font-size: 15px;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.task-complete:hover {
+  color: white;
+
+  background: var(--tu-black);
+
+  border-color: var(--tu-black);
+}
+
+.task-completing {
+  opacity: 0;
+
+  transform: translateX(10px);
+}
+
+/* =========================================================
+   All Caught Up
+   ========================================================= */
+
+.tasks-empty {
+  display: flex;
+  align-items: center;
+
+  gap: 20px;
+
+  padding: 38px 24px;
+}
+
+.tasks-empty-mark {
+  width: 46px;
+  height: 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  color: var(--tu-accent);
+
+  background: var(--tu-accent-soft);
+
+  border: 1px solid #dedcff;
+
+  border-radius: 50%;
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.tasks-empty h3 {
+  margin: 0 0 5px;
+
+  color: var(--tu-black);
+
+  font-size: 21px;
+}
+
+.tasks-empty p {
+  margin: 0;
+
+  color: var(--tu-muted);
+
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   Responsive — Tablet
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .dashboard {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .course-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .learning-queue {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   Responsive — Mobile
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .dashboard {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .dashboard-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 24px;
+
+    padding-top: 20px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 2.45rem;
+  }
+
+  .dashboard-header p {
+    font-size: 16px;
+  }
+
+  .course-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .learning-queue {
+    width: 100%;
+  }
+
+  .task-course-heading {
+    min-height: 58px;
+
+    padding-left: 18px;
+    padding-right: 18px;
+
+    font-size: 16px;
+  }
+
+  .learning-task {
+    grid-template-columns:
+      32px
+      minmax(0, 1fr);
+
+    gap: 10px;
+
+    padding: 18px;
+  }
+
+  .task-number {
+    font-size: 12px;
+  }
+
+  .task-actions {
+    grid-column: 2;
+
+    gap: 10px;
+
+    margin-top: 4px;
+  }
+
+  .task-start {
+    font-size: 14px;
+  }
+
+  .task-complete {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* =========================================================
+   Responsive — Small Mobile
+   ========================================================= */
+
+@media (max-width: 480px) {
+  .dashboard {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .dashboard-section {
+    padding-top: 34px;
+  }
+
+  .dashboard-header {
+    padding-bottom: 32px;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+
+    gap: 12px;
+  }
+
+  .section-heading h2 {
+    font-size: 24px;
+  }
+
+  .course-card {
+    min-height: 165px;
+
+    padding: 20px;
+  }
+
+  .course-card-name {
+    font-size: 19px;
+  }
+
+  .task-title {
+    white-space: normal;
+  }
+
+  .tasks-empty {
+    align-items: flex-start;
+
+    padding: 30px 18px;
+  }
+}

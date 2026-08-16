@@ -1,0 +1,927 @@
+/* =========================================================
+   TutorU — Lesson View
+   ========================================================= */
+
+/* =========================================================
+   Page
+   ========================================================= */
+
+.lesson-page {
+  width: 100%;
+  max-width: 1180px;
+
+  margin: 0 auto;
+
+  padding: 0 28px 80px;
+}
+
+/* =========================================================
+   Header
+   ========================================================= */
+
+.lesson-header {
+  padding: 28px 0 38px;
+
+  border-bottom: 1px solid var(--tu-line);
+}
+
+.lesson-back {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-bottom: 32px;
+
+  color: var(--tu-muted);
+
+  font-size: 15px;
+  font-weight: 500;
+
+  transition:
+    color 150ms ease,
+    gap 150ms ease;
+}
+
+.lesson-back:hover {
+  color: var(--tu-black);
+
+  gap: 11px;
+}
+
+.lesson-back span {
+  font-size: 18px;
+}
+
+.lesson-header-main {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 40px;
+}
+
+.lesson-heading {
+  min-width: 0;
+}
+
+.lesson-eyebrow {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-bottom: 10px;
+
+  color: var(--tu-muted);
+
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.lesson-eyebrow span {
+  color: var(--tu-subtle);
+}
+
+.lesson-heading h1 {
+  max-width: 850px;
+
+  margin: 0;
+
+  color: var(--tu-black);
+
+  font-size: clamp(2.4rem, 3.8vw, 3.25rem);
+  font-weight: 650;
+
+  line-height: 1.07;
+
+  letter-spacing: -0.055em;
+}
+
+.reading-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  flex-shrink: 0;
+
+  color: var(--tu-black);
+
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.reading-time-label {
+  margin-bottom: 3px;
+
+  color: var(--tu-muted);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.13em;
+}
+
+/* =========================================================
+   Main Layout
+   ========================================================= */
+
+.lesson-layout {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    360px;
+
+  gap: 54px;
+
+  align-items: start;
+
+  padding-top: 44px;
+}
+
+/* =========================================================
+   Lesson Article
+   ========================================================= */
+
+.lesson-article {
+  min-width: 0;
+}
+
+.lesson-content {
+  color: #292929;
+
+  font-size: 17px;
+
+  line-height: 1.82;
+}
+
+.lesson-content > *:first-child {
+  margin-top: 0;
+}
+
+.lesson-content h1,
+.lesson-content h2,
+.lesson-content h3,
+.lesson-content h4 {
+  color: var(--tu-black);
+
+  line-height: 1.2;
+
+  letter-spacing: -0.04em;
+}
+
+.lesson-content h1 {
+  margin-top: 44px;
+  margin-bottom: 20px;
+
+  font-size: 32px;
+}
+
+.lesson-content h2 {
+  margin-top: 42px;
+  margin-bottom: 17px;
+
+  font-size: 26px;
+}
+
+.lesson-content h3 {
+  margin-top: 34px;
+  margin-bottom: 13px;
+
+  font-size: 21px;
+}
+
+.lesson-content h4 {
+  margin-top: 28px;
+  margin-bottom: 11px;
+
+  font-size: 18px;
+}
+
+.lesson-content p {
+  margin: 0 0 19px;
+}
+
+.lesson-content ul,
+.lesson-content ol {
+  margin: 0 0 21px;
+
+  padding-left: 26px;
+}
+
+.lesson-content li {
+  margin-bottom: 8px;
+}
+
+.lesson-content strong {
+  color: var(--tu-black);
+
+  font-weight: 650;
+}
+
+.lesson-content blockquote {
+  margin: 30px 0;
+
+  padding: 5px 0 5px 21px;
+
+  color: var(--tu-muted);
+
+  border-left: 2px solid var(--tu-accent);
+}
+
+.lesson-content code {
+  padding: 3px 6px;
+
+  color: var(--tu-black);
+
+  background: #eeeeeb;
+
+  border-radius: 4px;
+
+  font-size: 0.9em;
+}
+
+.lesson-content pre {
+  overflow-x: auto;
+
+  margin: 26px 0;
+
+  padding: 19px;
+
+  color: #eeeeee;
+
+  background: #171717;
+
+  border-radius: 8px;
+
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.lesson-content pre code {
+  padding: 0;
+
+  color: inherit;
+
+  background: transparent;
+
+  border-radius: 0;
+}
+
+/* =========================================================
+   Completion
+   ========================================================= */
+
+.lesson-completion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 30px;
+
+  margin-top: 48px;
+  padding-top: 26px;
+
+  border-top: 1px solid var(--tu-line);
+}
+
+.completion-title {
+  margin-bottom: 4px;
+
+  color: var(--tu-black);
+
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.completion-description {
+  color: var(--tu-muted);
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.completion-button {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  flex-shrink: 0;
+
+  padding: 11px 16px;
+
+  color: white;
+
+  background: var(--tu-black);
+
+  border: 1px solid var(--tu-black);
+  border-radius: var(--tu-radius-sm);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+.completion-button:hover:not(:disabled) {
+  background: #2b2b2b;
+
+  transform: translateY(-1px);
+}
+
+.completion-button.completed {
+  background: var(--tu-success);
+
+  border-color: var(--tu-success);
+}
+
+.completion-button:disabled {
+  cursor: default;
+}
+
+.completion-spinner {
+  width: 13px;
+  height: 13px;
+
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: white;
+
+  border-radius: 50%;
+
+  animation: lesson-spin 700ms linear infinite;
+}
+
+@keyframes lesson-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.completion-message {
+  margin-top: 15px;
+
+  padding: 12px 15px;
+
+  color: var(--tu-success);
+
+  background: #f0f8f2;
+
+  border: 1px solid #d6eadb;
+  border-radius: var(--tu-radius-sm);
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   AI Tutor
+   ========================================================= */
+
+.ai-tutor {
+  position: sticky;
+  top: 92px;
+
+  overflow: hidden;
+
+  background: var(--tu-surface);
+
+  border: 1px solid var(--tu-line);
+  border-radius: var(--tu-radius);
+}
+
+.ai-tutor-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  padding: 20px;
+
+  border-bottom: 1px solid var(--tu-line);
+}
+
+.ai-tutor-eyebrow {
+  margin-bottom: 5px;
+
+  color: var(--tu-accent);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.14em;
+}
+
+.ai-tutor-header h2 {
+  margin: 0;
+
+  color: var(--tu-black);
+
+  font-size: 19px;
+  font-weight: 650;
+
+  letter-spacing: -0.03em;
+}
+
+.ai-tutor-status {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: var(--tu-muted);
+
+  font-size: 12px;
+}
+
+.ai-tutor-status span {
+  width: 6px;
+  height: 6px;
+
+  background: var(--tu-success);
+
+  border-radius: 50%;
+}
+
+/* =========================================================
+   Chat
+   ========================================================= */
+
+.chat-container {
+  height: 430px;
+
+  overflow-y: auto;
+
+  padding: 20px;
+}
+
+.chat-empty {
+  min-height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 28px;
+
+  text-align: center;
+}
+
+.chat-empty-mark {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 14px;
+
+  color: var(--tu-accent);
+
+  background: var(--tu-accent-soft);
+
+  border: 1px solid #dedcff;
+  border-radius: 50%;
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.chat-empty h3 {
+  margin: 0 0 6px;
+
+  font-size: 17px;
+}
+
+.chat-empty p {
+  max-width: 250px;
+
+  margin: 0;
+
+  color: var(--tu-muted);
+
+  font-size: 14px;
+
+  line-height: 1.6;
+}
+
+/* =========================================================
+   Messages
+   ========================================================= */
+
+.chat-message {
+  max-width: 90%;
+
+  margin-bottom: 14px;
+
+  padding: 12px 14px;
+
+  font-size: 14px;
+
+  line-height: 1.65;
+}
+
+.chat-message.user {
+  margin-left: auto;
+
+  color: white;
+
+  background: var(--tu-black);
+
+  border-radius: 10px 10px 2px 10px;
+}
+
+.chat-message.assistant {
+  color: var(--tu-text);
+
+  background: #f4f4f2;
+
+  border-radius: 10px 10px 10px 2px;
+}
+
+.chat-message.assistant p {
+  margin: 0 0 9px;
+}
+
+.chat-message.assistant p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-message.assistant h3,
+.chat-message.assistant h4 {
+  margin: 14px 0 7px;
+
+  color: var(--tu-black);
+
+  font-size: 15px;
+}
+
+.chat-message.assistant ul {
+  margin: 8px 0;
+
+  padding-left: 20px;
+}
+
+.chat-message.assistant li {
+  margin-bottom: 5px;
+}
+
+.ai-citation {
+  margin-top: 11px;
+
+  padding-top: 9px;
+
+  color: var(--tu-muted);
+
+  border-top: 1px solid var(--tu-line);
+
+  font-size: 11px;
+}
+
+.ai-thinking {
+  display: flex;
+
+  gap: 4px;
+
+  padding: 2px 0;
+}
+
+.ai-thinking span {
+  width: 5px;
+  height: 5px;
+
+  background: var(--tu-muted);
+
+  border-radius: 50%;
+
+  animation: thinking-dot 900ms infinite ease-in-out;
+}
+
+.ai-thinking span:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.ai-thinking span:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+@keyframes thinking-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+
+    transform: translateY(-3px);
+  }
+}
+
+.chat-error {
+  color: #a33a3a;
+}
+
+/* =========================================================
+   Chat Input
+   ========================================================= */
+
+.chat-input-area {
+  padding: 15px 20px 18px;
+
+  border-top: 1px solid var(--tu-line);
+}
+
+.chat-input-wrapper {
+  display: flex;
+  align-items: center;
+
+  overflow: hidden;
+
+  background: var(--tu-bg);
+
+  border: 1px solid var(--tu-line-dark);
+  border-radius: var(--tu-radius-sm);
+
+  transition: border-color 150ms ease;
+}
+
+.chat-input-wrapper:focus-within {
+  border-color: var(--tu-accent);
+}
+
+.chat-input-wrapper input {
+  min-width: 0;
+
+  flex: 1;
+
+  padding: 12px 13px;
+
+  color: var(--tu-black);
+
+  background: transparent;
+
+  border: 0;
+  outline: 0;
+
+  font-size: 14px;
+}
+
+.chat-input-wrapper input::placeholder {
+  color: var(--tu-subtle);
+}
+
+.chat-input-wrapper button {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  margin-right: 3px;
+
+  color: white;
+
+  background: var(--tu-black);
+
+  border: 0;
+  border-radius: 6px;
+
+  font-size: 16px;
+
+  cursor: pointer;
+
+  transition: background 150ms ease;
+}
+
+.chat-input-wrapper button:hover:not(:disabled) {
+  background: var(--tu-accent);
+}
+
+.chat-input-wrapper button:disabled {
+  opacity: 0.4;
+
+  cursor: not-allowed;
+}
+
+.chat-note {
+  margin-top: 8px;
+
+  color: var(--tu-subtle);
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+/* =========================================================
+   Loading
+   ========================================================= */
+
+.lesson-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 90px 20px;
+
+  text-align: center;
+}
+
+.loading-mark {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 19px;
+
+  border: 1px solid var(--tu-line-dark);
+  border-radius: 50%;
+}
+
+.loading-mark span {
+  width: 13px;
+  height: 13px;
+
+  border: 2px solid var(--tu-line);
+  border-top-color: var(--tu-accent);
+
+  border-radius: 50%;
+
+  animation: lesson-spin 700ms linear infinite;
+}
+
+.lesson-loading h2 {
+  margin: 0 0 7px;
+
+  font-size: 21px;
+}
+
+.lesson-loading p {
+  max-width: 450px;
+
+  margin: 0 0 21px;
+
+  color: var(--tu-muted);
+
+  font-size: 14px;
+
+  line-height: 1.6;
+}
+
+.refresh-button {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 10px 14px;
+
+  color: var(--tu-black);
+
+  background: transparent;
+
+  border: 1px solid var(--tu-line-dark);
+  border-radius: var(--tu-radius-sm);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.refresh-button:hover {
+  color: white;
+
+  background: var(--tu-black);
+
+  border-color: var(--tu-black);
+}
+
+/* =========================================================
+   Responsive — Tablet
+   ========================================================= */
+
+@media (max-width: 950px) {
+  .lesson-page {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .lesson-layout {
+    grid-template-columns: 1fr;
+
+    gap: 42px;
+  }
+
+  .ai-tutor {
+    position: relative;
+
+    top: auto;
+  }
+
+  .chat-container {
+    height: 340px;
+  }
+}
+
+/* =========================================================
+   Responsive — Mobile
+   ========================================================= */
+
+@media (max-width: 650px) {
+  .lesson-page {
+    padding-left: 18px;
+    padding-right: 18px;
+    padding-bottom: 60px;
+  }
+
+  .lesson-header {
+    padding-top: 18px;
+    padding-bottom: 30px;
+  }
+
+  .lesson-back {
+    margin-bottom: 26px;
+  }
+
+  .lesson-header-main {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 18px;
+  }
+
+  .reading-time {
+    align-items: flex-start;
+  }
+
+  .lesson-heading h1 {
+    font-size: 2.2rem;
+  }
+
+  .lesson-eyebrow {
+    font-size: 12px;
+  }
+
+  .lesson-layout {
+    padding-top: 32px;
+  }
+
+  .lesson-content {
+    font-size: 16px;
+
+    line-height: 1.78;
+  }
+
+  .lesson-content h1 {
+    font-size: 28px;
+  }
+
+  .lesson-content h2 {
+    font-size: 23px;
+  }
+
+  .lesson-content h3 {
+    font-size: 19px;
+  }
+
+  .lesson-completion {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 18px;
+  }
+
+  .completion-button {
+    width: 100%;
+
+    justify-content: center;
+  }
+
+  .ai-tutor-header {
+    padding: 18px;
+  }
+
+  .chat-container {
+    height: 350px;
+  }
+}

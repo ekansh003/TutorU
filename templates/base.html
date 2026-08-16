@@ -1,407 +1,53 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Tutor U{% endblock %}</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            /* Warmer, more natural color palette */
-            --primary-color: #2d5a8c;
-            --secondary-color: #5b7c99;
-            --accent-color: #d4812f;
-            --success-color: #2d7a5f;
-            --warning-color: #c17721;
-            --danger-color: #b5433f;
-            --dark-color: #2c3440;
-            --light-color: #f7f4f0;
-            --cream: #faf8f5;
-            --warm-gray: #e8e4df;
-            --soft-shadow: rgba(44, 52, 64, 0.08);
-        }
-        
-        body {
-            font-family: 'Georgia', 'Times New Roman', serif;
-            background-color: var(--light-color);
-            color: var(--dark-color);
-            line-height: 1.6;
-        }
-        
-        .navbar {
-            background: var(--primary-color);
-            box-shadow: 0 1px 3px var(--soft-shadow);
-            border-bottom: 2px solid var(--accent-color);
-        }
-        
-        .navbar-brand {
-            font-weight: 600;
-            font-size: 1.4rem;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            letter-spacing: -0.02em;
-        }
-        
-        .sidebar {
-            background: var(--cream);
-            border-radius: 6px;
-            box-shadow: 0 2px 8px var(--soft-shadow);
-            padding: 1.5rem;
-            height: fit-content;
-            border: 1px solid var(--warm-gray);
-        }
-        
-        .main-content {
-            background: white;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px var(--soft-shadow);
-            padding: 2.5rem;
-            min-height: 600px;
-            border: 1px solid var(--warm-gray);
-        }
-        
-        .card {
-            border: 1px solid var(--warm-gray);
-            border-radius: 6px;
-            box-shadow: 0 2px 6px var(--soft-shadow);
-            transition: box-shadow 0.3s ease;
-            background: white;
-        }
-        
-        .card:hover {
-            box-shadow: 0 4px 12px rgba(44, 52, 64, 0.12);
-        }
-        
-        .btn-primary {
-            background: var(--primary-color);
-            border: 1px solid darken(var(--primary-color), 10%);
-            border-radius: 4px;
-            font-weight: 500;
-            padding: 0.65rem 1.4rem;
-            transition: background-color 0.2s ease;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-        
-        .btn-primary:hover {
-            background: #254a73;
-            border-color: #1e3a5f;
-        }
-        
-        .btn-success {
-            background: var(--success-color);
-            border: 1px solid #24624d;
-            border-radius: 4px;
-            font-weight: 500;
-        }
-        
-        .btn-success:hover {
-            background: #24624d;
-        }
-        
-        .btn-warning {
-            background: var(--warning-color);
-            border: 1px solid #a0621b;
-            border-radius: 4px;
-            font-weight: 500;
-            color: white;
-        }
-        
-        .btn-warning:hover {
-            background: #a0621b;
-        }
-        
-        .task-item {
-            background: var(--cream);
-            border-radius: 4px;
-            padding: 1.1rem;
-            margin-bottom: 0.6rem;
-            border-left: 3px solid var(--accent-color);
-            transition: background-color 0.2s ease;
-        }
-        
-        .task-item:hover {
-            background: #f5f2ed;
-        }
-        
-        .lesson-content {
-            line-height: 1.75;
-            font-size: 1.05rem;
-        }
-        
-        .lesson-content h2 {
-            color: var(--primary-color);
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 0.4rem;
-        }
-        
-        .lesson-content p {
-            margin-bottom: 1.2rem;
-        }
-        
-        .lesson-content ul, .lesson-content ol {
-            margin-bottom: 1.2rem;
-            padding-left: 2rem;
-        }
-        
-        .lesson-content li {
-            margin-bottom: 0.4rem;
-        }
-        
-        .lesson-content code {
-            background: #f0ede8;
-            padding: 0.2rem 0.5rem;
-            border-radius: 3px;
-            font-size: 0.9rem;
-            font-family: 'Courier New', monospace;
-            border: 1px solid var(--warm-gray);
-        }
-        
-        .chat-container {
-            max-height: 500px;
-            overflow-y: auto;
-            border: 1px solid var(--warm-gray);
-            border-radius: 6px;
-            padding: 1rem;
-            background: var(--cream);
-        }
-        
-        .chat-message {
-            margin-bottom: 1rem;
-            padding: 0.9rem;
-            border-radius: 5px;
-            max-width: 80%;
-        }
-        
-        .chat-message.user {
-            background: var(--primary-color);
-            color: white;
-            margin-left: auto;
-            text-align: right;
-            border-bottom: 2px solid var(--accent-color);
-        }
-        
-        .chat-message.assistant {
-            background: white;
-            border: 1px solid var(--warm-gray);
-            box-shadow: 0 1px 3px var(--soft-shadow);
-        }
-        
-        .quiz-option {
-            padding: 0.85rem;
-            margin: 0.6rem 0;
-            border: 2px solid var(--warm-gray);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background: white;
-        }
-        
-        .quiz-option:hover {
-            border-color: var(--secondary-color);
-            background: var(--cream);
-        }
-        
-        .quiz-option.selected {
-            border-color: var(--primary-color);
-            background: #e8eff5;
-        }
-        
-        .quiz-option.correct {
-            border-color: var(--success-color);
-            background: #e8f3ee;
-        }
-        
-        .quiz-option.incorrect {
-            border-color: var(--danger-color);
-            background: #f7e9e8;
-        }
-        
-        .progress {
-            height: 10px;
-            border-radius: 5px;
-            background: var(--warm-gray);
-            border: 1px solid #d4cec6;
-        }
-        
-        .progress-bar {
-            background: var(--primary-color);
-            border-radius: 4px;
-            background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
-        }
-        
-        .flash-message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1050;
-            min-width: 300px;
-            border-radius: 5px;
-            box-shadow: 0 3px 10px var(--soft-shadow);
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                margin-bottom: 1rem;
-            }
-            
-            .main-content {
-                padding: 1.5rem;
-            }
-        }
-        
-        /* Chat message formatting */
-        .assistant-content h4 {
-            color: var(--primary-color);
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin: 1.2rem 0 0.6rem 0;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %} Tutor U {% endblock %}</title>
 
-        .assistant-content h5 {
-            color: var(--secondary-color);
-            font-size: 1.05rem;
-            font-weight: 600;
-            margin: 1rem 0 0.5rem 0;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
 
-        .assistant-content h6 {
-            color: var(--dark-color);
-            font-size: 0.98rem;
-            font-weight: 600;
-            margin: 0.8rem 0 0.4rem 0;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
 
-        .assistant-content p {
-            margin-bottom: 0.9rem;
-            line-height: 1.65;
-        }
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/base.css') }}"
+    />
 
-        .assistant-content ul,
-        .assistant-content ol {
-            margin: 0.6rem 0 1rem 1.2rem;
-            padding-left: 1rem;
-        }
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <nav class="tutoru-navbar">
+      <div class="tutoru-nav-inner">
+        <a href="{{ url_for('home') }}" class="tutoru-brand">
+          <span class="tutoru-wordmark">TutorU</span>
+        </a>
 
-        .assistant-content li {
-            margin-bottom: 0.4rem;
-            line-height: 1.5;
-        }
+        <div class="tutoru-nav-actions">
+          <a href="{{ url_for('home') }}" class="tutoru-nav-link">
+            Dashboard
+          </a>
 
-        .assistant-content strong {
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        .assistant-content em {
-            color: var(--accent-color);
-            font-style: italic;
-        }
-
-        * {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        input, textarea, select {
-            border: 1px solid var(--warm-gray);
-            border-radius: 4px;
-            padding: 0.6rem;
-            font-family: inherit;
-            transition: border-color 0.2s ease;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 3px rgba(91, 124, 153, 0.1);
-        }
-    </style>
-    
-    {% block extra_head %}{% endblock %}
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('home') }}">
-                <i class="fas fa-graduation-cap me-2"></i>
-                Tutor U
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('home') }}">
-                            <i class="fas fa-home me-1"></i>Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('new_course') }}">
-                            <i class="fas fa-plus me-1"></i>New Course
-                        </a>
-                    </li>
-                </ul>
-            </div>
+          <a href="{{ url_for('new_course') }}" class="tutoru-new-course">
+            <span>+</span>
+            New Course
+          </a>
         </div>
+      </div>
     </nav>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-message">
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-
-    <div class="container mt-4">
-        {% block content %}{% endblock %}
-    </div>
+    <main class="tutoru-main">
+      <div class="tutoru-container">{% block content %}{% endblock %}</div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        // Auto-dismiss flash messages after 5 seconds
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            });
-        }, 5000);
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            const buttons = document.querySelectorAll('button[type="submit"]');
-            buttons.forEach(button => {
-                button.addEventListener('click', function() {
-                    if (this.form && this.form.checkValidity()) {
-                        this.disabled = true;
-                        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
-                    }
-                });
-            });
-        });
-    </script>
-    
+
     {% block extra_js %}{% endblock %}
-</body>
+  </body>
 </html>

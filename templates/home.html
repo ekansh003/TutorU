@@ -1,132 +1,193 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block title %}TutorU — Dashboard{% endblock %} {%
+block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/home.css') }}"
+/>
+{% endblock %} {% block content %}
 
-{% block content %}
-<div class="row">
-    <!-- Sidebar -->
-    <div class="col-lg-3">
-        <div class="sidebar">
-            <h5 class="mb-3">
-                <i class="fas fa-book me-2"></i>
-                Courses
-            </h5>
-            <div class="d-grid gap-2 mb-3">
-                <a href="{{ url_for('new_course') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>New Course
-                </a>
-            </div>
-            <div class="list-group">
-                {% for course in get_course_names() %}
-                    <a href="{{ url_for('course_detail', course_name=course) }}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-book-open me-2"></i>{{ course }}
-                    </a>
-                {% endfor %}
-            </div>
-        </div>
+<div class="dashboard">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div>
+      <div class="eyebrow">YOUR LEARNING SPACE</div>
+
+      <h1>Today's learning</h1>
+
+      <p>Pick up where you left off and keep your learning moving.</p>
     </div>
-    
-    <!-- Main Content -->
-    <div class="col-lg-9">
-        <div class="main-content">
-            <h2 class="mb-4">
-                <i class="fas fa-calendar-day me-2"></i>
-                Today's Tasks
-            </h2>
-            
-            {% if not tasks_by_course %}
-                <div class="text-center py-5">
-                    <i class="fas fa-check-circle fa-5x text-success mb-3"></i>
-                    <h4 class="text-muted">All tasks completed!</h4>
-                    <p class="text-muted">No incomplete tasks for today.</p>
-                </div>
-            {% else %}
-                {% for course_name, tasks in tasks_by_course.items() %}
-                    <div class="card mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">
-                                <i class="fas fa-graduation-cap me-2"></i>
-                                {{ course_name }}
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            {% for task in tasks %}
-                                <div class="task-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>{{ task.task_type }}:</strong> {{ task.task_description }}
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        {% if task.task_type == 'Lesson' %}
-                                            <a href="{{ url_for('lesson_view', course_name=course_name, chapter_id=task.chapter_id, lesson_id=task.lesson_id) }}" 
-                                               class="btn btn-sm btn-primary">
-                                                <i class="fas fa-book-open me-1"></i>Start
-                                            </a>
-                                        {% else %}
-                                            <a href="{{ url_for('quiz_view', course_name=course_name, chapter_id=task.chapter_id, quiz_type=task.task_type, lesson_id=task.lesson_id if task.task_type == 'Short Quiz' else None) }}" 
-                                               class="btn btn-sm btn-warning">
-                                                <i class="fas fa-question-circle me-1"></i>Start Quiz
-                                            </a>
-                                        {% endif %}
-                                        <button class="btn btn-sm btn-success complete-task" 
-                                                data-schedule-id="{{ task.schedule_id }}" 
-                                                data-task-type="{{ task.task_type }}">
-                                            <i class="fas fa-check me-1"></i>Complete
-                                        </button>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        </div>
+
+    <a href="{{ url_for('new_course') }}" class="dashboard-create-link">
+      Create a course
+      <span>→</span>
+    </a>
+  </header>
+
+  <!-- Courses -->
+  <section class="dashboard-section">
+    <div class="section-heading">
+      <div>
+        <span class="section-label">YOUR COURSES</span>
+      </div>
+
+      <span class="section-count">
+        {{ get_course_names()|length }} {% if get_course_names()|length == 1 %}
+        course {% else %} courses {% endif %}
+      </span>
     </div>
+
+    <div class="course-grid">
+      {% for course in get_course_names() %}
+
+      <a
+        href="{{ url_for('course_detail', course_name=course) }}"
+        class="course-card"
+      >
+        <div class="course-card-top">
+          <span class="course-index"> {{ "%02d"|format(loop.index) }} </span>
+
+          <span class="course-arrow">↗</span>
+        </div>
+
+        <div class="course-card-name">{{ course }}</div>
+
+        <div class="course-card-footer">Open course</div>
+      </a>
+
+      {% else %}
+
+      <div class="empty-courses">
+        <div class="empty-courses-title">No courses yet.</div>
+
+        <p>
+          Create your first learning path and TutorU will build the curriculum
+          for you.
+        </p>
+
+        <a href="{{ url_for('new_course') }}" class="text-link">
+          Create your first course →
+        </a>
+      </div>
+
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Today's Tasks -->
+  <section class="dashboard-section tasks-section">
+    <div class="section-heading">
+      <div>
+        <span class="section-label">TODAY</span>
+        <h2>Learning queue</h2>
+      </div>
+
+      {% if tasks_by_course %}
+      <span class="section-count">
+        {{ tasks_by_course|length }} {% if tasks_by_course|length == 1 %} course
+        {% else %} courses {% endif %}
+      </span>
+      {% endif %}
+    </div>
+
+    {% if not tasks_by_course %}
+
+    <div class="tasks-empty">
+      <div class="tasks-empty-mark">✓</div>
+
+      <div>
+        <h3>You're all caught up.</h3>
+
+        <p>
+          No incomplete tasks for today. Come back tomorrow to continue
+          learning.
+        </p>
+      </div>
+    </div>
+
+    {% else %}
+
+    <div class="learning-queue">
+      {% for course_name, tasks in tasks_by_course.items() %}
+
+      <div class="task-course-group">
+        <div class="task-course-heading">
+          <span class="task-course-dot"></span>
+
+          <span>{{ course_name }}</span>
+        </div>
+
+        <div class="task-list">
+          {% for task in tasks %}
+
+          <div
+            class="learning-task task-item"
+            data-task-type="{{ task.task_type }}"
+          >
+            <div class="task-number">{{ "%02d"|format(loop.index) }}</div>
+
+            <div class="task-main">
+              <div class="task-type">{{ task.task_type }}</div>
+
+              <div class="task-title">{{ task.task_description }}</div>
+            </div>
+
+            <div class="task-actions">
+              {% if task.task_type == 'Lesson' %}
+
+              <a
+                href="{{ url_for(
+                                                    'lesson_view',
+                                                    course_name=course_name,
+                                                    chapter_id=task.chapter_id,
+                                                    lesson_id=task.lesson_id
+                                                ) }}"
+                class="task-start"
+              >
+                Start
+                <span>→</span>
+              </a>
+
+              {% else %}
+
+              <a
+                href="{{ url_for(
+                                                    'quiz_view',
+                                                    course_name=course_name,
+                                                    chapter_id=task.chapter_id,
+                                                    quiz_type=task.task_type,
+                                                    lesson_id=task.lesson_id if task.task_type == 'Short Quiz' else None
+                                                ) }}"
+                class="task-start"
+              >
+                Start
+                <span>→</span>
+              </a>
+
+              {% endif %}
+
+              <button
+                type="button"
+                class="task-complete complete-task"
+                data-schedule-id="{{ task.schedule_id }}"
+                data-task-type="{{ task.task_type }}"
+                aria-label="Mark task as completed"
+              >
+                ✓
+              </button>
+            </div>
+          </div>
+
+          {% endfor %}
+        </div>
+      </div>
+
+      {% endfor %}
+    </div>
+
+    {% endif %}
+  </section>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const completeButtons = document.querySelectorAll('.complete-task');
-        completeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const scheduleId = this.dataset.scheduleId;
-                const taskType = this.dataset.taskType;
-                const button = this;
-                
-                fetch('/mark_task_completed', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        schedule_id: scheduleId,
-                        task_type: taskType
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        button.closest('.task-item').style.opacity = '0.5';
-                        button.disabled = true;
-                        button.innerHTML = '<i class="fas fa-check me-1"></i>Completed';
-                        
-                        setTimeout(() => {
-                            button.closest('.task-item').remove();
-                            
-                            const remainingTasks = button.closest('.card-body').querySelectorAll('.task-item');
-                            if (remainingTasks.length === 0) {
-                                button.closest('.card').remove();
-                            }
-                        }, 500);
-                    } else {
-                        alert('Failed to mark task as completed. Please try again.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
-                });
-            });
-        });
-    });
-</script>
+{% endblock %} {% block extra_js %}
+<script src="{{ url_for('static', filename='js/home.js') }}"></script>
 {% endblock %}
