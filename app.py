@@ -415,6 +415,10 @@ def init_db():
     with app.app_context():
         db.create_all()
 
+
+# Initialize database when the application starts.
+init_db()
+
+
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True)
