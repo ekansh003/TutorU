@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-3">
+        <a href="{{ url_for('course_detail', course_name=course_name) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Course
+        </a>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>
+                <i class="fas fa-question-circle me-2"></i>
+                {{ quiz_type }}
+            </h2>
+            <p class="text-muted mb-0">
+                <i class="fas fa-folder-open me-1"></i>{{ course_name }}
+                <i class="fas fa-chevron-right mx-2"></i>
+                <i class="fas fa-book me-1"></i>{{ chapter_title }}
+                {% if lesson_title %}
+                    <i class="fas fa-chevron-right mx-2"></i>
+                    <i class="fas fa-file-alt me-1"></i>{{ lesson_title }}
+                {% endif %}
+            </p>
+        </div>
+        <div class="text-muted">
+            <span id="questionCounter">Question 1 of {{ questions|length }}</span>
+        </div>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="progress mb-4">
+        <div class="progress-bar" role="progressbar" 
+             style="width: {{ (1 / questions|length * 100) }}%" 
+             id="progressBar"></div>
+    </div>
+    
+    {% if not questions %}
+        <div class="text-center py-5">
+            <i class="fas fa-question-circle fa-5x text-muted mb-3"></i>
+            <h4 class="text-muted">No questions available</h4>
+            <p class="text-muted">This quiz doesn't have any questions yet. Please try again later.</p>
+        </div>
+    {% else %}
+        <!-- Quiz Container -->
+        <div id="quizContainer">
+            <!-- Question will be loaded here -->
+        </div>
+        
+        <!-- Quiz Controls -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <button class="btn btn-secondary" id="prevBtn" disabled>
+                <i class="fas fa-arrow-left me-2"></i>Previous
+            </button>
+            <div class="text-center">
+                <button class="btn btn-primary d-none" id="submitBtn">
+                    <i class="fas fa-check me-2"></i>Submit Quiz
+                </button>
+            </div>
+            <button class="btn btn-primary" id="nextBtn">
+                Next<i class="fas fa-arrow-right ms-2"></i>
+            </button>
+        </div>
+        
+        <!-- Results Modal -->
+        <div class="modal fade" id="resultsModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-trophy me-2"></i>
+                            Quiz Completed!
+                        </h5>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div id="resultsContent">
+                            <!-- Results will be shown here -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <a href="{{ url_for('course_detail', course_name=course_name) }}" class="btn btn-primary">
+                            <i class="fas fa-graduation-cap me-2"></i>Back to Course
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const questions = {{ questions | tojson }};
+        let currentQuestion = 0;
+        let answers = new Array(questions.length).fill(null);
+        let submitted = false;
+        
+        const quizContainer = document.getElementById('quizContainer');
+        const questionCounter = document.getElementById('questionCounter');
+        const progressBar = document.getElementById('progressBar');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const resultsModal = new bootstrap.Modal(document.getElementById('resultsModal'));
+        
+        // Load question
+        function loadQuestion() {
+            const question = questions[currentQuestion];
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            
+            // Update UI
+            questionCounter.textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+            progressBar.style.width = `${progress}%`;
+            
+            // Update buttons
+            prevBtn.disabled = currentQuestion === 0;
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.classList.add('d-none');
+                submitBtn.classList.remove('d-none');
+            } else {
+                nextBtn.classList.remove('d-none');
+                submitBtn.classList.add('d-none');
+            }
+            
+            // Render question
+            quizContainer.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">${question.question}</h5>
+                        <div class="quiz-options">
+                            ${question.options.map((option, index) => `
+                                <div class="quiz-option" data-option="${option}">
+                                    <div class="d-flex align-items-center">
+                                        <div class="option-letter me-3">${String.fromCharCode(65 + index)}</div>
+                                        <div class="option-text">${option}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Restore selected answer
+            if (answers[currentQuestion] !== null) {
+                const selectedOption = quizContainer.querySelector(`[data-option="${answers[currentQuestion]}"]`);
+                if (selectedOption) {
+                    selectedOption.classList.add('selected');
+                }
+            }
+            
+            // Add click handlers to options
+            const options = quizContainer.querySelectorAll('.quiz-option');
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    if (submitted) return;
+                    
+                    // Remove previous selection
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Select current option
+                    this.classList.add('selected');
+                    answers[currentQuestion] = this.dataset.option;
+                });
+            });
+        }
+        
+        // Navigate to previous question
+        prevBtn.addEventListener('click', function() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        });
+        
+        // Navigate to next question
+        nextBtn.addEventListener('click', function() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            }
+        });
+        
+        // Submit quiz
+        submitBtn.addEventListener('click', function() {
+            // Check if all questions are answered
+            const unanswered = answers.filter(answer => answer === null).length;
+            if (unanswered > 0) {
+                if (!confirm(`You have ${unanswered} unanswered question(s). Do you want to submit anyway?`)) {
+                    return;
+                }
+            }
+            
+            submitted = true;
+            
+            // Calculate score
+            let correctCount = 0;
+            questions.forEach((question, index) => {
+                if (answers[index] === question.correct_answer) {
+                    correctCount++;
+                }
+            });
+            
+            const score = Math.round((correctCount / questions.length) * 100);
+            
+            // Show results
+            showResults(correctCount, questions.length, score);
+            
+            // Save scores to server
+            fetch('/submit_quiz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    answers: answers,
+                    questions: questions
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error('Failed to save quiz scores:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error saving quiz scores:', error);
+            });
+        });
+        
+        // Show results modal
+        function showResults(correct, total, percentage) {
+            const resultsContent = document.getElementById('resultsContent');
+            let grade, gradeColor, message;
+            
+            if (percentage >= 90) {
+                grade = 'A';
+                gradeColor = 'text-success';
+                message = 'Excellent work! You have mastered this topic.';
+            } else if (percentage >= 80) {
+                grade = 'B';
+                gradeColor = 'text-info';
+                message = 'Great job! You have a good understanding of this topic.';
+            } else if (percentage >= 70) {
+                grade = 'C';
+                gradeColor = 'text-warning';
+                message = 'Good effort! Review the material to improve your understanding.';
+            } else if (percentage >= 60) {
+                grade = 'D';
+                gradeColor = 'text-danger';
+                message = 'Keep studying! You need more practice with this topic.';
+            } else {
+                grade = 'F';
+                gradeColor = 'text-danger';
+                message = 'Don\'t give up! Review the lesson and try again.';
+            }
+            
+            resultsContent.innerHTML = `
+                <div class="mb-4">
+                    <div class="display-1 ${gradeColor} mb-2">${percentage}%</div>
+                    <h4 class="mb-1">Grade: ${grade}</h4>
+                    <p class="text-muted">${correct} out of ${total} questions correct</p>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    ${message}
+                </div>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="text-success">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <div class="h5">${correct}</div>
+                            <small class="text-muted">Correct</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-danger">
+                            <i class="fas fa-times-circle fa-2x mb-2"></i>
+                            <div class="h5">${total - correct}</div>
+                            <small class="text-muted">Incorrect</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            resultsModal.show();
+            
+            // Show correct answers
+            questions.forEach((question, index) => {
+                const option = document.querySelector(`[data-option="${answers[index]}"]`);
+                if (option) {
+                    if (answers[index] === question.correct_answer) {
+                        option.classList.add('correct');
+                    } else {
+                        option.classList.add('incorrect');
+                    }
+                }
+                
+                // Highlight correct answer
+                const correctOption = document.querySelector(`[data-option="${question.correct_answer}"]`);
+                if (correctOption && answers[index] !== question.correct_answer) {
+                    correctOption.classList.add('correct');
+                }
+            });
+        }
+        
+        // Initialize quiz
+        loadQuestion();
+    });
+</script>
+{% endblock %}

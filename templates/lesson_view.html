@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-3">
+        <a href="{{ url_for('course_detail', course_name=course_name) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Course
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>{{ lesson_title }}</h2>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-folder-open me-1"></i>{{ course_name }}
+                        <i class="fas fa-chevron-right mx-2"></i>
+                        <i class="fas fa-book me-1"></i>{{ chapter_title }}
+                    </p>
+                </div>
+                <div class="text-muted">
+                    <i class="fas fa-clock me-1"></i>
+                    <span id="readingTime">Calculating...</span>
+                </div>
+            </div>
+            
+            {% if content %}
+                <div class="lesson-content" id="lessonContent">
+                {{ content | markdown | safe }}
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Lesson completed? Mark it as done to continue to the next task.
+                    </div>
+                    <button class="btn btn-success" id="markCompleted">
+                        <i class="fas fa-check me-2"></i>Mark as Completed
+                    </button>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h4 class="text-muted">Generating lesson content...</h4>
+                    <p class="text-muted">Please wait while we prepare your lesson. This may take a few moments.</p>
+                    <button class="btn btn-primary mt-3" onclick="location.reload()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card sticky-top" style="top: 100px;">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>
+                    AI Tutor
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chat-container" id="chatContainer">
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-comments fa-2x mb-2"></i>
+                        <p class="mb-0">Ask me anything about this lesson!</p>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="questionInput" 
+                               placeholder="Ask a question about the lesson..."
+                               {% if not content %}disabled{% endif %}>
+                        <button class="btn btn-primary" type="button" id="askButton" 
+                                {% if not content %}disabled{% endif %}>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        The AI will answer based only on the lesson content.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatContainer = document.getElementById('chatContainer');
+        const questionInput = document.getElementById('questionInput');
+        const askButton = document.getElementById('askButton');
+        const lessonContent = document.getElementById('lessonContent');
+        
+        if (lessonContent) {
+            const text = lessonContent.textContent;
+            const wordCount = text.trim().split(/\s+/).length;
+            const readingTime = Math.ceil(wordCount / 200); // 200 words per minute
+            document.getElementById('readingTime').textContent = `${readingTime} min read`;
+        }
+        
+function askQuestion() {
+    const question = questionInput.value.trim();
+    if (!question) return;
+    
+    addMessage('user', question);
+    questionInput.value = '';
+    
+    addMessage('assistant', '<i class="fas fa-spinner fa-spin me-2"></i>Thinking...', true);
+    
+    const lessonContentElement = document.getElementById('lessonContent');
+    const rawContent = lessonContentElement ? lessonContentElement.textContent || lessonContentElement.innerText : '';
+    
+    fetch('/ask_question', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            question: question,
+            course_name: '{{ course_name }}',
+            chapter_title: '{{ chapter_title }}',
+            lesson_title: '{{ lesson_title }}',
+            content: rawContent
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const loadingMessages = chatContainer.querySelectorAll('.loading');
+        loadingMessages.forEach(msg => msg.remove());
+        
+        if (data.success) {
+            addMessage('assistant', data.answer + '<br><small class="text-muted">' + data.citation + '</small>');
+        } else {
+            addMessage('assistant', '<i class="fas fa-exclamation-triangle me-2"></i>Sorry, I couldn\'t process your question. Please try again. Error: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const loadingMessages = chatContainer.querySelectorAll('.loading');
+        loadingMessages.forEach(msg => msg.remove());
+        addMessage('assistant', '<i class="fas fa-exclamation-triangle me-2"></i>Network error. Please check your connection and try again.');
+    });
+}
+        
+function addMessage(role, content, isLoading = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${role} ${isLoading ? 'loading' : ''}`;
+    
+    if (role === 'assistant' && !isLoading) {
+        let formattedContent = content
+            .replace(/### (.*?)(?=\n|$)/g, '<h4 style="color: #6366f1; margin: 15px 0 10px 0; font-size: 1.1rem; font-weight: 600;">$1</h4>')
+            .replace(/## (.*?)(?=\n|$)/g, '<h3 style="color: #6366f1; margin: 15px 0 10px 0; font-size: 1.2rem; font-weight: 600;">$1</h3>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #6366f1;">$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em style="color: #8b5cf6;">$1</em>')
+            .replace(/^- (.*?)(?=\n|$)/gm, '<li style="margin: 5px 0; padding-left: 10px;">$1</li>')
+            .replace(/(<li style="margin: 5px 0; padding-left: 10px;">.*<\/li>)/gs, '<ul style="margin: 10px 0; padding-left: 20px;">$1</ul>')
+            .split('\n\n')
+            .map(paragraph => {
+                if (paragraph.trim() === '') return '';
+                if (paragraph.includes('<h') || paragraph.includes('<ul') || paragraph.includes('<li')) {
+                    return paragraph;
+                }
+                return `<p style="margin: 10px 0; line-height: 1.5;">${paragraph}</p>`;
+            })
+            .join('');
+        
+        messageDiv.innerHTML = formattedContent;
+    } else {
+        messageDiv.innerHTML = content;
+    }
+    
+    chatContainer.appendChild(messageDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+        
+        askButton.addEventListener('click', askQuestion);
+        questionInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                askQuestion();
+            }
+        });
+        
+        document.getElementById('markCompleted').addEventListener('click', function() {
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+            
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-check me-2"></i>Completed!';
+                this.className = 'btn btn-success';
+                
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success mt-3';
+                alert.innerHTML = '<i class="fas fa-check-circle me-2"></i>Lesson marked as completed! You can now proceed to the next task.';
+                this.parentNode.appendChild(alert);
+                
+                setTimeout(() => {
+                    alert.remove();
+                }, 3000);
+            }, 1000);
+        });
+    });
+</script>
+{% endblock %}

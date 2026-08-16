@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <!-- Sidebar -->
+    <div class="col-lg-3">
+        <div class="sidebar">
+            <h5 class="mb-3">
+                <i class="fas fa-book me-2"></i>
+                Courses
+            </h5>
+            <div class="d-grid gap-2 mb-3">
+                <a href="{{ url_for('new_course') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>New Course
+                </a>
+            </div>
+            <div class="list-group">
+                {% for course in get_course_names() %}
+                    <a href="{{ url_for('course_detail', course_name=course) }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-book-open me-2"></i>{{ course }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="col-lg-9">
+        <div class="main-content">
+            <h2 class="mb-4">
+                <i class="fas fa-calendar-day me-2"></i>
+                Today's Tasks
+            </h2>
+            
+            {% if not tasks_by_course %}
+                <div class="text-center py-5">
+                    <i class="fas fa-check-circle fa-5x text-success mb-3"></i>
+                    <h4 class="text-muted">All tasks completed!</h4>
+                    <p class="text-muted">No incomplete tasks for today.</p>
+                </div>
+            {% else %}
+                {% for course_name, tasks in tasks_by_course.items() %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-graduation-cap me-2"></i>
+                                {{ course_name }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% for task in tasks %}
+                                <div class="task-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ task.task_type }}:</strong> {{ task.task_description }}
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        {% if task.task_type == 'Lesson' %}
+                                            <a href="{{ url_for('lesson_view', course_name=course_name, chapter_id=task.chapter_id, lesson_id=task.lesson_id) }}" 
+                                               class="btn btn-sm btn-primary">
+                                                <i class="fas fa-book-open me-1"></i>Start
+                                            </a>
+                                        {% else %}
+                                            <a href="{{ url_for('quiz_view', course_name=course_name, chapter_id=task.chapter_id, quiz_type=task.task_type, lesson_id=task.lesson_id if task.task_type == 'Short Quiz' else None) }}" 
+                                               class="btn btn-sm btn-warning">
+                                                <i class="fas fa-question-circle me-1"></i>Start Quiz
+                                            </a>
+                                        {% endif %}
+                                        <button class="btn btn-sm btn-success complete-task" 
+                                                data-schedule-id="{{ task.schedule_id }}" 
+                                                data-task-type="{{ task.task_type }}">
+                                            <i class="fas fa-check me-1"></i>Complete
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const completeButtons = document.querySelectorAll('.complete-task');
+        completeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const scheduleId = this.dataset.scheduleId;
+                const taskType = this.dataset.taskType;
+                const button = this;
+                
+                fetch('/mark_task_completed', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        schedule_id: scheduleId,
+                        task_type: taskType
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        button.closest('.task-item').style.opacity = '0.5';
+                        button.disabled = true;
+                        button.innerHTML = '<i class="fas fa-check me-1"></i>Completed';
+                        
+                        setTimeout(() => {
+                            button.closest('.task-item').remove();
+                            
+                            const remainingTasks = button.closest('.card-body').querySelectorAll('.task-item');
+                            if (remainingTasks.length === 0) {
+                                button.closest('.card').remove();
+                            }
+                        }, 500);
+                    } else {
+                        alert('Failed to mark task as completed. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

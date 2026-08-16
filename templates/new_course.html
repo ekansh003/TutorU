@@ -1,0 +1,587 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="main-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'warning' }} alert-dismissible fade show mb-4" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <h2 class="mb-4">
+                <i class="fas fa-plus-circle me-2"></i>
+                Create New Course
+            </h2>
+
+            {% if session.step == 'select_chapters' %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Select Chapters for {{ session.course_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" novalidate>
+                        <input type="hidden" name="action" value="create_course" />
+
+                        <div class="mb-3">
+                            <button
+                                type="button"
+                                class="btn btn-secondary mb-3"
+                                id="selectAll"
+                            >
+                                <i class="fas fa-check-square me-2"></i>Select All
+                            </button>
+                        </div>
+
+                        <div class="chapter-list">
+                            {% for chapter in session.chapters %}
+                            <div class="form-check mb-3 p-3 border rounded">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    name="selected_chapters"
+                                    value="{{ chapter }}"
+                                    id="chapter_{{ loop.index }}"
+                                />
+                                <label
+                                    class="form-check-label w-100"
+                                    for="chapter_{{ loop.index }}"
+                                >
+                                    <strong>{{ chapter }}</strong>
+                                    <p class="text-muted mb-0 mt-1">
+                                        Chapter {{ loop.index }} - Click to include this chapter in
+                                        your course
+                                    </p>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('home') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </a>
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                                id="createCourseBtn"
+                                disabled
+                            >
+                                <i class="fas fa-rocket me-2"></i>Create Course
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Course Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" novalidate>
+                        <input type="hidden" name="action" value="generate_chapters" />
+
+                        <div class="mb-3">
+                            <label for="course_name" class="form-label">
+                                <i class="fas fa-book me-2"></i>
+                                Course Name
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control form-control-lg"
+                                id="course_name"
+                                name="course_name"
+                                placeholder="e.g., Data Structures and Algorithms, Machine Learning, Web Development"
+                                required
+                                minlength="3"
+                                maxlength="200"
+                                autocomplete="off"
+                            />
+                            <div class="form-text">
+                                Enter the name of the course you want to create. Our AI will
+                                generate relevant chapters for you.
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('home') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-magic me-2"></i>Generate Chapters
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        Course Ideas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Programming & Tech</h6>
+                            <ul class="list-unstyled">
+                                <li>
+                                    <i class="fas fa-code me-2 text-primary"></i>Python
+                                    Programming
+                                </li>
+                                <li>
+                                    <i class="fas fa-database me-2 text-primary"></i>Database
+                                    Design
+                                </li>
+                                <li>
+                                    <i class="fas fa-mobile me-2 text-primary"></i>Mobile App
+                                    Development
+                                </li>
+                                <li>
+                                    <i class="fas fa-shield-alt me-2 text-primary"></i
+                                    >Cybersecurity Fundamentals
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Business & Design</h6>
+                            <ul class="list-unstyled">
+                                <li>
+                                    <i class="fas fa-chart-line me-2 text-success"></i>Digital
+                                    Marketing
+                                </li>
+                                <li>
+                                    <i class="fas fa-palette me-2 text-success"></i>UI/UX Design
+                                </li>
+                                <li>
+                                    <i class="fas fa-users me-2 text-success"></i>Project
+                                    Management
+                                </li>
+                                <li>
+                                    <i class="fas fa-language me-2 text-success"></i>Spanish
+                                    Language
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  
+  class FormSubmissionManager {
+    constructor() {
+      this.isSubmitting = false;
+      this.forms = new Map();
+      this.init();
+    }
+
+    init() {
+      console.log("FormSubmissionManager: Initializing form handlers");
+      this.registerEventListeners();
+      this.initializeFormStates();
+    }
+
+    registerEventListeners() {
+      document.addEventListener("submit", (event) => {
+        this.handleFormSubmission(event);
+      });
+
+      document.addEventListener("click", (event) => {
+        if (
+          event.target.type === "submit" ||
+          event.target.closest('button[type="submit"]')
+        ) {
+          this.handleButtonClick(event);
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && event.target.tagName === "INPUT") {
+          this.handleEnterKey(event);
+        }
+      });
+    }
+
+    initializeFormStates() {
+      const courseNameForm = document
+        .querySelector('form input[name="action"][value="generate_chapters"]')
+        ?.closest("form");
+      if (courseNameForm) {
+        this.initializeCourseNameForm(courseNameForm);
+      }
+
+      const chapterForm = document
+        .querySelector('form input[name="action"][value="create_course"]')
+        ?.closest("form");
+      if (chapterForm) {
+        this.initializeChapterSelectionForm(chapterForm);
+      }
+    }
+
+    initializeCourseNameForm(form) {
+      console.log("FormSubmissionManager: Initializing course name form");
+      const courseNameInput = form.querySelector("#course_name");
+      const submitButton = form.querySelector('button[type="submit"]');
+
+      if (courseNameInput) {
+        courseNameInput.focus();
+
+        courseNameInput.addEventListener("input", () => {
+          this.validateCourseNameForm(form);
+        });
+
+        courseNameInput.addEventListener("blur", () => {
+          this.validateCourseNameForm(form);
+        });
+
+        courseNameInput.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            console.log("FormSubmissionManager: Enter key pressed in course name input");
+            form.requestSubmit();
+          }
+        });
+      }
+
+      this.forms.set("course_name", {
+        form: form,
+        submitButton: submitButton,
+        courseNameInput: courseNameInput,
+        isValid: false,
+        validationErrors: [],
+      });
+
+      this.validateCourseNameForm(form);
+    }
+
+    initializeChapterSelectionForm(form) {
+      console.log("FormSubmissionManager: Initializing chapter selection form");
+      const checkboxes = form.querySelectorAll(
+        'input[name="selected_chapters"]'
+      );
+      const submitButton = form.querySelector("#createCourseBtn");
+      const selectAllBtn = document.getElementById("selectAll");
+
+      checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener("change", () => {
+          this.updateChapterSelectionState(form);
+        });
+      });
+
+      if (selectAllBtn) {
+        selectAllBtn.addEventListener("click", (event) => {
+          event.preventDefault();
+          this.toggleSelectAll(form);
+        });
+      }
+
+      this.forms.set("chapter_selection", {
+        form: form,
+        submitButton: submitButton,
+        checkboxes: checkboxes,
+        selectAllBtn: selectAllBtn,
+        isValid: false,
+        validationErrors: [],
+      });
+
+      this.updateChapterSelectionState(form);
+    }
+
+    validateCourseNameForm(form) {
+      const courseNameInput = form.querySelector("#course_name");
+      const formState = this.forms.get("course_name");
+
+      if (!courseNameInput || !formState) {
+        console.log("FormSubmissionManager: Course name validation failed - missing elements");
+        return false;
+      }
+
+      const courseName = courseNameInput.value.trim();
+      const errors = [];
+
+      courseNameInput.classList.remove("is-invalid", "is-valid");
+      this.clearValidationMessage(courseNameInput);
+
+      if (!courseName) {
+        errors.push("Course name is required");
+        courseNameInput.classList.add("is-invalid");
+        this.showValidationMessage(
+          courseNameInput,
+          "Please enter a course name"
+        );
+      } else if (courseName.length < 3) {
+        errors.push("Course name must be at least 3 characters long");
+        courseNameInput.classList.add("is-invalid");
+        this.showValidationMessage(
+          courseNameInput,
+          "Course name must be at least 3 characters long"
+        );
+      } else if (courseName.length > 200) {
+        errors.push("Course name must be less than 200 characters");
+        courseNameInput.classList.add("is-invalid");
+        this.showValidationMessage(
+          courseNameInput,
+          "Course name must be less than 200 characters"
+        );
+      } else {
+        courseNameInput.classList.add("is-valid");
+      }
+
+      formState.isValid = errors.length === 0;
+      formState.validationErrors = errors;
+
+      console.log("FormSubmissionManager: Course name validation", {
+        courseName: courseName,
+        isValid: formState.isValid,
+        errors: errors,
+      });
+
+      return formState.isValid;
+    }
+
+    updateChapterSelectionState(form) {
+      const formState = this.forms.get("chapter_selection");
+      if (!formState) return;
+
+      const checkedCount = form.querySelectorAll(
+        'input[name="selected_chapters"]:checked'
+      ).length;
+      const totalCount = form.querySelectorAll(
+        'input[name="selected_chapters"]'
+      ).length;
+
+      formState.isValid = checkedCount > 0;
+      formState.submitButton.disabled = !formState.isValid;
+
+      if (checkedCount === 0) {
+        formState.submitButton.innerHTML =
+          '<i class="fas fa-rocket me-2"></i>Select chapters to continue';
+      } else {
+        formState.submitButton.innerHTML = `<i class="fas fa-rocket me-2"></i>Create Course (${checkedCount} chapters)`;
+      }
+
+      if (formState.selectAllBtn) {
+        const allChecked = checkedCount === totalCount;
+        formState.selectAllBtn.innerHTML = allChecked
+          ? '<i class="fas fa-square me-2"></i>Deselect All'
+          : '<i class="fas fa-check-square me-2"></i>Select All';
+      }
+
+      console.log("FormSubmissionManager: Chapter selection state updated", {
+        checkedCount: checkedCount,
+        totalCount: totalCount,
+        isValid: formState.isValid,
+      });
+    }
+
+    toggleSelectAll(form) {
+      const checkboxes = form.querySelectorAll(
+        'input[name="selected_chapters"]'
+      );
+      const allChecked = Array.from(checkboxes).every((cb) => cb.checked);
+
+      checkboxes.forEach((cb) => {
+        cb.checked = !allChecked;
+      });
+
+      this.updateChapterSelectionState(form);
+    }
+
+    handleFormSubmission(event) {
+      const form = event.target;
+      const actionInput = form.querySelector('input[name="action"]');
+
+      if (!actionInput) return;
+
+      console.log("FormSubmissionManager: Form submission attempted", {
+        action: actionInput.value,
+        isSubmitting: this.isSubmitting,
+      });
+
+      if (this.isSubmitting) {
+        console.log("FormSubmissionManager: Preventing duplicate submission");
+        event.preventDefault();
+        return;
+      }
+
+      const action = actionInput.value;
+      let formState;
+
+      if (action === "generate_chapters") {
+        formState = this.forms.get("course_name");
+        this.validateCourseNameForm(form);
+        
+        if (!formState || !formState.isValid) {
+          console.log("FormSubmissionManager: Course name form validation failed", {
+            errors: formState ? formState.validationErrors : ["Form state not found"],
+          });
+          event.preventDefault();
+          
+          const courseNameInput = form.querySelector("#course_name");
+          if (courseNameInput) {
+            courseNameInput.focus();
+          }
+          return;
+        }
+      } else if (action === "create_course") {
+        formState = this.forms.get("chapter_selection");
+        
+        if (!formState || !formState.isValid) {
+          console.log("FormSubmissionManager: Chapter selection form validation failed");
+          event.preventDefault();
+          return;
+        }
+      }
+
+      this.setLoadingState(form, true);
+      
+      console.log("FormSubmissionManager: Form submission proceeding", {
+        action: action,
+        isValid: formState ? formState.isValid : false
+      });
+    }
+
+    handleButtonClick(event) {
+      const button = event.target.closest('button[type="submit"]');
+      if (!button) return;
+
+      const form = button.closest("form");
+      if (!form) return;
+
+      console.log("FormSubmissionManager: Submit button clicked");
+
+      event.preventDefault();
+      
+      form.requestSubmit();
+    }
+
+    handleEnterKey(event) {
+      const input = event.target;
+      const form = input.closest("form");
+
+      if (!form) return;
+
+      const actionInput = form.querySelector('input[name="action"]');
+      if (!actionInput) return;
+
+      if (
+        input.id === "course_name" &&
+        actionInput.value === "generate_chapters"
+      ) {
+        console.log("FormSubmissionManager: Enter key pressed in course name input (global handler)");
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    }
+
+    setLoadingState(form, isLoading) {
+      this.isSubmitting = isLoading;
+      const submitButton = form.querySelector('button[type="submit"]');
+
+      if (!submitButton) return;
+
+      if (isLoading) {
+        submitButton.disabled = true;
+        const originalText = submitButton.innerHTML;
+        submitButton.dataset.originalText = originalText;
+        
+        const actionInput = form.querySelector('input[name="action"]');
+        const action = actionInput ? actionInput.value : '';
+        
+        if (action === 'generate_chapters') {
+          submitButton.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-2"></i>Generating Chapters...';
+        } else if (action === 'create_course') {
+          submitButton.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-2"></i>Creating Course...';
+        } else {
+          submitButton.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        }
+
+        console.log("FormSubmissionManager: Loading state activated", { action });
+      } else {
+        submitButton.disabled = false;
+        if (submitButton.dataset.originalText) {
+          submitButton.innerHTML = submitButton.dataset.originalText;
+          delete submitButton.dataset.originalText;
+        }
+
+        console.log("FormSubmissionManager: Loading state deactivated");
+      }
+    }
+
+    showValidationMessage(input, message) {
+      this.clearValidationMessage(input);
+
+      const feedback = document.createElement("div");
+      feedback.className = "invalid-feedback";
+      feedback.textContent = message;
+      feedback.dataset.validationMessage = "true";
+
+      input.parentNode.appendChild(feedback);
+    }
+
+    clearValidationMessage(input) {
+      const existingFeedback = input.parentNode.querySelector(
+        '[data-validation-message="true"]'
+      );
+      if (existingFeedback) {
+        existingFeedback.remove();
+      }
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("FormSubmissionManager: DOM loaded, initializing...");
+    window.formManager = new FormSubmissionManager();
+
+    const courseNameInput = document.getElementById("course_name");
+    if (courseNameInput && document.querySelector(".alert-danger")) {
+      courseNameInput.focus();
+      courseNameInput.select();
+    }
+  });
+
+  window.addEventListener("beforeunload", function () {
+    if (window.formManager) {
+      document.querySelectorAll("form").forEach((form) => {
+        window.formManager.setLoadingState(form, false);
+      });
+    }
+  });
+
+  window.addEventListener("pageshow", function (event) {
+    if (event.persisted && window.formManager) {
+      document.querySelectorAll("form").forEach((form) => {
+        window.formManager.setLoadingState(form, false);
+      });
+    }
+  });
+
+  window.addEventListener("error", function (event) {
+    if (window.formManager) {
+      console.log("FormSubmissionManager: Error detected, resetting loading states");
+      document.querySelectorAll("form").forEach((form) => {
+        window.formManager.setLoadingState(form, false);
+      });
+    }
+  });
+</script>
+{% endblock %}
